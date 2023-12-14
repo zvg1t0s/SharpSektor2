@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SampSharpGameMode1": {
+      "commandName": "Project"
+    },
+    "samp-server": {
+      "commandName": "Executable",
+      "executablePath": "C:\\server\\SA-MP 0.3.7 Windows Server\\samp-server.exe",
+      "workingDirectory": "C:\\server\\SA-MP 0.3.7 Windows Server"
+    }
+  }
+}
