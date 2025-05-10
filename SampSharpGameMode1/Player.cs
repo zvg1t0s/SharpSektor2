@@ -198,6 +198,7 @@ namespace SampSharpGameMode1
             lootItems.Add(new LootItem(14, "Shotgun", "Мощное оружие для прицельной стрельбы на средние и ближние дистанции", 349, false, 1000, 3000, 2, true));
             lootItems.Add(new LootItem(15, "дробь 14 cal", "Патроны для Shotgun 8 ед.", 2037, false, 10, 30, 7, true));
             lootItems.Add(new LootItem(16, "Легкий бронежилет", "Простой бронежилет, прочность 100 AP", 1242, false, 100, 500,5,true));
+            lootItems.Add(new LootItem(17, "Ремкомплект", "Стандартный набор ремонтника", 19900, true, 100, 250,1,true));
             
 
 
@@ -3081,9 +3082,10 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
         public void TpToGlava()
         {
 
-            this.Position = new SampSharp.GameMode.Vector3(501.98, -69.15, 998.75);
-            this.VirtualWorld = 1002;
-            this.Interior = 11;
+            this.Position = new SampSharp.GameMode.Vector3(2217.083, 1585.277, 1000);
+            this.VirtualWorld = 1010;
+            this.Interior = 1;
+            this.SetTime(12,30);
         }
         [Command("shoptp")]
         public void TeleportToShop()
@@ -3157,6 +3159,7 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
         public override void OnGiveDamage(DamageEventArgs e)
         {
             base.OnGiveDamage(e);
+            
             this.SetChatBubble("АГРЕССОР", SampSharp.GameMode.SAMP.Color.DarkRed, 10, 1500);
             if (isBooms == true && PlayerBooms > 0 && (e.Weapon != Weapon.Cane) && (e.Weapon != Weapon.Bat) && (e.Weapon != Weapon.Knife) && (e.Weapon != Weapon.None) && (e.Weapon != Weapon.Brassknuckle) && (e.Weapon != Weapon.Golfclub) && (e.Weapon != Weapon.Shovel) && (e.Weapon != Weapon.Chainsaw) && (e.Weapon != Weapon.Dildo) && (e.Weapon != Weapon.DoubleEndedDildo) && (e.Weapon != Weapon.Vibrator) && (e.Weapon != Weapon.SilverVibrator) && (e.Weapon != Weapon.Flower) && (e.Weapon != Weapon.Grenade) && (e.Weapon != Weapon.Teargas) && (e.Weapon != Weapon.Moltov) && (e.Weapon != Weapon.SatchelCharge) && (e.Weapon != Weapon.FireExtinguisher) && (e.Weapon != Weapon.Spraycan))
             {
@@ -3169,9 +3172,10 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
                     e.OtherPlayer.Health = 0;
                 }
             }
-            if (this.Weapon == Weapon.Sniper && e.BodyPart == BodyPart.Head) {
+            if (this.Weapon == Weapon.Sniper && (e.BodyPart == BodyPart.Head) ) {
                 e.OtherPlayer.SendClientMessage("{FF0000}Вам попали в голову из снайперской винтовки, {FFFFFF}ваши мозги превратились в кашу!");
                 e.OtherPlayer.Health = 0;
+                
             }
         }
         [Command("carcolor")]
@@ -3210,9 +3214,6 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
         public override void OnSpawned(SpawnEventArgs e)
         {
             this.StopAudioStream();
-            base.OnSpawned(e);
-            
-            sqlCon.Open();
             var getSkin = new MySqlCommand($"SELECT `SkinId` FROM `Players` WHERE `NickName` = '{Name}'", sqlCon);
             //-404.76 2194.89 42.36 269.95
             SetPlayerMarker(this, SampSharp.GameMode.SAMP.Color.DimGray);
@@ -3221,6 +3222,11 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
             this.Skin = Convert.ToInt32(getSkin.ExecuteScalar());
             var getMoney = new MySqlCommand($"SELECT `Money` FROM `Players` WHERE `NickName` = '{Name}'", sqlCon);
             this.Money = Convert.ToInt32(getMoney.ExecuteScalar());
+
+            base.OnSpawned(e);
+            
+            sqlCon.Open();
+            
 
 
 
@@ -3260,7 +3266,11 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
 
                             var getSkin = new MySqlCommand($"SELECT `SkinId` FROM `Players` WHERE `NickName` = '{Name}'", sqlCon);
                             //-138,64566, 1219,6842, 19,742188
-                            this.SetSpawnInfo(0, Convert.ToInt32(getSkin.ExecuteScalar()), new SampSharp.GameMode.Vector3(x: -138.64566f, y: 1219.6842f, z: 19.742188), 355.68f);
+                            //2177.5847, 1584.5847 , 1000, 270
+                            
+                            this.SetSpawnInfo(0, Convert.ToInt32(getSkin.ExecuteScalar()), new SampSharp.GameMode.Vector3(2177.5847, 1584.5847, 1000), 270f);
+                            this.Interior = 1;
+                            this.VirtualWorld = 1010;
                             this.PutCameraBehindPlayer();
                             sqlCon.Close();
                             isAutorised = true;
@@ -3974,6 +3984,15 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
                     isUsed = true;
                 }
             }
+            if (slotsinfo[i] == 17)
+            {
+                if (this.InAnyVehicle)
+                {
+                    this.Vehicle.Health += 1000;
+                    SendClientMessage("Вы отремонтировали свой транспорт");
+                    isUsed = true;
+                }
+            }
             if (isUsed == true)
             {
                 var updateMoney = new MySqlCommand($"UPDATE `Players` SET `slot{i}` = '0' WHERE `Players`.`NickName` = '{Name}'", sqlCon);
@@ -4240,12 +4259,14 @@ PlayerTextDrawSetSelectable(playerid, woodnum[playerid], 1);
 
             string name = "";
             string description = "";
+            string botsellPrice = "";
             name = lootItems.Find(item => item.Id == slotsinfo[i]).Name;
             description = lootItems.Find(item => item.Id == slotsinfo[i]).Description;
-            
+            description = lootItems.Find(item => item.Id == slotsinfo[i]).Description;
+            botsellPrice = lootItems.Find(item => item.Id == slotsinfo[i]).BotSellPrice.ToString();
             if (slotsinfo[i] != 0)
             {
-                var lootinfo = new MessageDialog("Лут", $"{{FFFFFF}}Название:{name}\n{{ffffff}} Описание:{description}", "OK");
+                var lootinfo = new MessageDialog($"{name}", $"{{FFFFFF}}{description}\n\n{{e61e1e}}Продажа NPC:{{0e630f}} {botsellPrice}", "OK");
                 lootinfo.Show(this);
             }
         }
